@@ -6,7 +6,7 @@ This logger has two important features:
  
  Thanks to these features, this logger is able to cut the time spent on logs.
  
- ###Performances
+ ### Performances
  
  In the main class there is a test of lots of logs.
  - The level of logs is Info so the Trace logs aren't logged. 
@@ -24,7 +24,7 @@ This logger has two important features:
 | Trace | 137 ms | 344 ms |
 | Trace | 140 ms | 378 ms |
 
-###Reduced use of resources
+### Reduced use of resources
 
 With some tricks, the used resources are the least possible.
 - A thread which is inactive most of the time
