@@ -16,7 +16,7 @@ public class Main {
 
 		long len = 100000L, t = 0, t1 = 0, t2 = 0, t3 = 0, t4, t5, t6, t7;
 
-		AsyncLoggerManager asyncLoggerManager = new AsyncLoggerManager(AsyncLoggerManager.Severity.INFO, 1000L);
+		AsyncLoggerManager asyncLoggerManager = new AsyncLoggerManager(AsyncLoggerManager.Severity.INFO, 1200L);
 
 		String str = "CiaociaociaociaociaociaociaociaoCiaociaociaociaociaociaociaociao" +
 				"CiaociaociaociaociaociaociaociaoCiaociaociaociaociaociaociaociao" +
@@ -34,7 +34,7 @@ public class Main {
 			t4 = System.currentTimeMillis() - t4;
 
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -49,7 +49,7 @@ public class Main {
 			t5 = System.currentTimeMillis() - t5;
 
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -76,6 +76,12 @@ public class Main {
 			t1 += t5;
 			t2 += t6;
 			t3 += t7;
+		}
+
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 
 		System.out.println("Time logger info: " + t);

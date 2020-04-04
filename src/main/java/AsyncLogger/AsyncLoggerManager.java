@@ -3,7 +3,6 @@ package AsyncLogger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.async.AsyncLoggerContextSelector;
 
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,11 +19,6 @@ public class AsyncLoggerManager {
 	final ConcurrentLinkedQueue<String> logsError;
 	final ConcurrentLinkedQueue<String> logsFatal;
 
-	private LinkedList<String> trace = new LinkedList<>(), debug = new LinkedList<>(), info = new LinkedList<>(),
-			warn = new LinkedList<>(), error = new LinkedList<>(), fatal = new LinkedList<>();
-
-	private final LoggerClassInternal loggerClassInternal;
-
 	private final AtomicInteger sevMin;
 	private final AtomicBoolean empty;
 
@@ -39,7 +33,7 @@ public class AsyncLoggerManager {
 
 	public AsyncLoggerManager(Severity sevMin, long waitMax) {
 
-		this.waitMax = waitMax / 2;
+		this.waitMax = waitMax * 2 / 3;
 		this.wait = new AtomicLong(waitMax / 5 + 1);
 		this.sevMin = new AtomicInteger();
 		this.empty = new AtomicBoolean(true);
@@ -71,11 +65,8 @@ public class AsyncLoggerManager {
 		logsError = new ConcurrentLinkedQueue<>();
 		logsFatal = new ConcurrentLinkedQueue<>();
 
-		loggerClassInternal = new LoggerClassInternal();
+		LoggerClassInternal loggerClassInternal = new LoggerClassInternal();
 		new Thread(loggerClassInternal).start();
-
-		LoggerInternal loggerInternal = new LoggerInternal();
-		new Thread(loggerInternal).start();
 
 		System.setProperty("Log4jContextSelector", AsyncLoggerContextSelector.class.getName());
 		logger = (org.apache.logging.log4j.core.async.AsyncLogger) LogManager.getLogger();
@@ -120,58 +111,6 @@ public class AsyncLoggerManager {
 		logsFatal.add(s);
 	}
 
-	private class LoggerInternal implements Runnable {
-
-		@Override
-		public void run() {
-
-			while (alive.get()) {
-
-				try {
-					Thread.sleep(wait.get());
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-
-				if (!empty.get()) {
-					synchronized (loggerClassInternal) {
-
-						for (String l : trace) {
-							logger.trace(l);
-						}
-
-						for (String l : debug) {
-							logger.debug(l);
-						}
-
-						for (String l : info) {
-							logger.info(l);
-						}
-
-						for (String l : warn) {
-							logger.warn(l);
-						}
-
-						for (String l : error) {
-							logger.error(l);
-						}
-
-						for (String l : fatal) {
-							logger.fatal(l);
-						}
-
-						trace.clear();
-						debug.clear();
-						info.clear();
-						warn.clear();
-						error.clear();
-						fatal.clear();
-					}
-				}
-			}
-		}
-	}
-
 	private class LoggerClassInternal implements Runnable {
 
 		@Override
@@ -187,55 +126,52 @@ public class AsyncLoggerManager {
 
 				long sizeTemp = 0;
 
-				synchronized (this) {
+				int size = logsTrace.size();
 
-					int size = logsTrace.size();
+				for (int i = 0; i < size; i++) {
+					logger.trace(logsTrace.poll());
+				}
 
-					for (int i = 0; i < size; i++) {
-						trace.addLast(logsTrace.poll());
-					}
+				sizeTemp += size;
+				size = logsDebug.size();
 
-					sizeTemp += size;
-					size = logsDebug.size();
+				for (int i = 0; i < size; i++) {
+					logger.debug(logsDebug.poll());
+				}
 
-					for (int i = 0; i < size; i++) {
-						debug.addLast(logsDebug.poll());
-					}
+				sizeTemp += size;
+				size = logsInfo.size();
 
-					sizeTemp += size;
-					size = logsInfo.size();
+				for (int i = 0; i < size; i++) {
+					logger.info(logsInfo.poll());
+				}
 
-					for (int i = 0; i < size; i++) {
-						info.addLast(logsInfo.poll());
-					}
+				sizeTemp += size;
+				size = logsWarn.size();
 
-					sizeTemp += size;
-					size = logsWarn.size();
+				for (int i = 0; i < size; i++) {
+					logger.warn(logsWarn.poll());
+				}
 
-					for (int i = 0; i < size; i++) {
-						warn.addLast(logsWarn.poll());
-					}
+				sizeTemp += size;
+				size = logsError.size();
 
-					sizeTemp += size;
-					size = logsError.size();
+				for (int i = 0; i < size; i++) {
+					logger.error(logsError.poll());
+				}
 
-					for (int i = 0; i < size; i++) {
-						error.addLast(logsError.poll());
-					}
+				sizeTemp += size;
+				size = logsFatal.size();
 
-					sizeTemp += size;
-					size = logsFatal.size();
-
-					for (int i = 0; i < size; i++) {
-						fatal.addLast(logsFatal.poll());
-					}
+				for (int i = 0; i < size; i++) {
+					logger.fatal(logsFatal.poll());
 				}
 
 				empty.compareAndSet(true, sizeTemp > 0);
 
 				if (sizeTemp > wait.get() * 10 && wait.get() > 1) {
 					wait.decrementAndGet();
-				} else if (sizeTemp < wait.get() / 5 && wait.get() < waitMax) {
+				} else if (sizeTemp < wait.get() / 2 && wait.get() < waitMax) {
 					wait.incrementAndGet();
 				}
 			}
