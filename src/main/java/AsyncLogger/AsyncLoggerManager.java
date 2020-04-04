@@ -12,12 +12,12 @@ public class AsyncLoggerManager {
 
 	private static org.apache.logging.log4j.core.async.AsyncLogger logger;
 
-	final ConcurrentLinkedQueue<String> logsTrace;
-	final ConcurrentLinkedQueue<String> logsDebug;
-	final ConcurrentLinkedQueue<String> logsInfo;
-	final ConcurrentLinkedQueue<String> logsWarn;
-	final ConcurrentLinkedQueue<String> logsError;
-	final ConcurrentLinkedQueue<String> logsFatal;
+	private final ConcurrentLinkedQueue<String> logsTrace;
+	private final ConcurrentLinkedQueue<String> logsDebug;
+	private final ConcurrentLinkedQueue<String> logsInfo;
+	private final ConcurrentLinkedQueue<String> logsWarn;
+	private final ConcurrentLinkedQueue<String> logsError;
+	private final ConcurrentLinkedQueue<String> logsFatal;
 
 	private final AtomicInteger sevMin;
 	private final AtomicBoolean empty;
