@@ -20,7 +20,6 @@ public class AsyncLoggerManager {
 	private final ConcurrentLinkedQueue<String> logsFatal;
 
 	private final AtomicInteger sevMin;
-	private final AtomicBoolean empty;
 
 	private AtomicLong wait;
 	private final long waitMax;
@@ -36,7 +35,6 @@ public class AsyncLoggerManager {
 		this.waitMax = waitMax * 2 / 3;
 		this.wait = new AtomicLong(waitMax / 5 + 1);
 		this.sevMin = new AtomicInteger();
-		this.empty = new AtomicBoolean(true);
 
 		switch (sevMin) {
 			case DEBUG:
@@ -65,8 +63,7 @@ public class AsyncLoggerManager {
 		logsError = new ConcurrentLinkedQueue<>();
 		logsFatal = new ConcurrentLinkedQueue<>();
 
-		LoggerClassInternal loggerClassInternal = new LoggerClassInternal();
-		new Thread(loggerClassInternal).start();
+		new LoggerClassInternal().start();
 
 		System.setProperty("Log4jContextSelector", AsyncLoggerContextSelector.class.getName());
 		logger = (org.apache.logging.log4j.core.async.AsyncLogger) LogManager.getLogger();
@@ -111,7 +108,7 @@ public class AsyncLoggerManager {
 		logsFatal.add(s);
 	}
 
-	private class LoggerClassInternal implements Runnable {
+	private class LoggerClassInternal extends Thread {
 
 		@Override
 		public void run() {
@@ -166,8 +163,6 @@ public class AsyncLoggerManager {
 				for (int i = 0; i < size; i++) {
 					logger.fatal(logsFatal.poll());
 				}
-
-				empty.compareAndSet(true, sizeTemp > 0);
 
 				if (sizeTemp > wait.get() * 10 && wait.get() > 1) {
 					wait.decrementAndGet();
