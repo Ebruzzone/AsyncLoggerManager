@@ -1,4 +1,5 @@
 # AsyncLoggerManager
+> Optimized cpu saver asynchronous logger easy to use
 
 This logger has two important features:
  - Is asynchronous relatively to the main thread
